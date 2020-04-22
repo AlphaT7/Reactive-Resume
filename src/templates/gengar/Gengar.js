@@ -9,7 +9,7 @@ const Gengar = () => {
   const { state } = context;
   const { data, theme } = state;
 
-  const { r, g, b } = hexToRgb(theme.colors.accent);
+  const { r, g, b } = hexToRgb(theme.colors.accent) || {};
 
   const Photo = () =>
     data.profile.photo !== '' && (
@@ -25,8 +25,9 @@ const Gengar = () => {
 
   const FullName = () => (
     <div>
-      <h1 className="text-2xl font-bold">{data.profile.firstName}</h1>
-      <h1 className="text-2xl font-bold">{data.profile.lastName}</h1>
+      <h1 className="text-2xl font-bold leading-tight">{data.profile.firstName}</h1>
+      <h1 className="text-2xl font-bold leading-tight">{data.profile.lastName}</h1>
+      <div className="text-xs font-medium mt-2">{data.profile.subtitle}</div>
     </div>
   );
 
@@ -55,6 +56,7 @@ const Gengar = () => {
   );
 
   const Objective = () =>
+    data.objective &&
     data.objective.enable && (
       <div className="flex flex-col justify-center items-start mb-6">
         <Heading title={data.objective.heading} />
@@ -69,6 +71,7 @@ const Gengar = () => {
   );
 
   const Skills = () =>
+    data.skills &&
     data.skills.enable && (
       <div className="mb-6">
         <Heading title={data.skills.heading} />
@@ -77,7 +80,7 @@ const Gengar = () => {
     );
 
   const EducationItem = x => (
-    <div key={x.name} className="mb-3">
+    <div key={x.id} className="mb-3">
       <div className="flex justify-between items-center">
         <div>
           <h6 className="font-semibold">
@@ -103,15 +106,16 @@ const Gengar = () => {
   );
 
   const Education = () =>
+    data.education &&
     data.education.enable && (
       <div className="mb-6">
         <Heading title={data.education.heading} />
-        {data.education.items.map(EducationItem)}
+        {data.education.items.filter(x => x.enable).map(EducationItem)}
       </div>
     );
 
   const CertificationItem = x => (
-    <div key={x.title} className="mb-3">
+    <div key={x.id} className="mb-3">
       <h6 className="font-semibold">{x.title}</h6>
       <p className="text-xs">{x.subtitle}</p>
       <ReactMarkdown className="mt-2 text-sm" source={x.description} />
@@ -119,15 +123,16 @@ const Gengar = () => {
   );
 
   const Certifications = () =>
+    data.certifications &&
     data.certifications.enable && (
       <div className="mb-6">
         <Heading title={data.certifications.heading} />
-        {data.certifications.items.map(CertificationItem)}
+        {data.certifications.items.filter(x => x.enable).map(CertificationItem)}
       </div>
     );
 
   const AwardItem = x => (
-    <div key={x.title} className="mb-3">
+    <div key={x.id} className="mb-3">
       <h6 className="font-semibold">{x.title}</h6>
       <p className="text-xs">{x.subtitle}</p>
       <ReactMarkdown className="mt-2 text-sm" source={x.description} />
@@ -135,10 +140,11 @@ const Gengar = () => {
   );
 
   const Awards = () =>
+    data.awards &&
     data.awards.enable && (
       <div className="mb-6">
         <Heading title={data.awards.heading} />
-        {data.awards.items.map(AwardItem)}
+        {data.awards.items.filter(x => x.enable).map(AwardItem)}
       </div>
     );
 
@@ -153,15 +159,18 @@ const Gengar = () => {
   );
 
   const References = () =>
+    data.references &&
     data.references.enable && (
       <div>
         <Heading title={data.references.heading} />
-        <div className="grid grid-cols-2 gap-6">{data.references.items.map(ReferenceItem)}</div>
+        <div className="grid grid-cols-2 gap-6">
+          {data.references.items.filter(x => x.enable).map(ReferenceItem)}
+        </div>
       </div>
     );
 
   const WorkItem = x => (
-    <div key={x.title} className="mb-3">
+    <div key={x.id} className="mb-3">
       <div className="flex justify-between items-center">
         <div>
           <h6 className="font-semibold">{x.title}</h6>
@@ -176,10 +185,11 @@ const Gengar = () => {
   );
 
   const Work = () =>
+    data.work &&
     data.work.enable && (
       <div className="mb-6">
         <Heading title={data.work.heading} />
-        {data.work.items.map(WorkItem)}
+        {data.work.items.filter(x => x.enable).map(WorkItem)}
       </div>
     );
 
@@ -187,35 +197,44 @@ const Gengar = () => {
     <div key={x.id} className="grid grid-cols-2 items-center py-2">
       <h6 className="text-sm font-medium">{x.key}</h6>
       <div className="flex">
-        {Array.from(Array(x.value)).map((_, i) => (
-          <i key={i} className="material-icons text-lg" style={{ color: theme.colors.accent }}>
-            star
-          </i>
-        ))}
+        {x.level && <div className="font-bold text-sm mr-2">{x.level}</div>}
+        {x.rating !== 0 && (
+          <div className="flex">
+            {Array.from(Array(x.rating)).map((_, i) => (
+              <i key={i} className="material-icons text-lg" style={{ color: theme.colors.accent }}>
+                star
+              </i>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
 
   const Languages = () =>
+    data.languages &&
     data.languages.enable && (
       <div>
         <Heading title={data.languages.heading} />
-        <div className="mb-6">{data.languages.items.map(LanguageItem)}</div>
+        <div className="mb-6">{data.languages.items.filter(x => x.enable).map(LanguageItem)}</div>
       </div>
     );
 
   const ExtraItem = x => (
-    <div key={x.key} className="text-sm my-1">
+    <div key={x.id} className="text-sm my-1">
       <h6 className="text-xs font-bold">{x.key}</h6>
       <h6>{x.value}</h6>
     </div>
   );
 
   const Extras = () =>
+    data.extras &&
     data.extras.enable && (
       <div>
         <Heading title={data.extras.heading} />
-        <div className="grid grid-cols-2">{data.extras.items.map(ExtraItem)}</div>
+        <div className="grid grid-cols-2">
+          {data.extras.items.filter(x => x.enable).map(ExtraItem)}
+        </div>
       </div>
     );
 

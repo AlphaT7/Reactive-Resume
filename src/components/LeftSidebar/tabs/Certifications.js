@@ -1,4 +1,5 @@
 import React, { useState, useContext } from 'react';
+import { useTranslation } from 'react-i18next';
 import { v4 as uuidv4 } from 'uuid';
 import set from 'lodash/set';
 
@@ -6,7 +7,10 @@ import TextField from '../../../shared/TextField';
 import AppContext from '../../../context/AppContext';
 import Checkbox from '../../../shared/Checkbox';
 import TextArea from '../../../shared/TextArea';
-import { addItem, deleteItem, moveItemUp, moveItemDown } from '../../../utils';
+import { addItem } from '../../../utils';
+import ItemActions from '../../../shared/ItemActions';
+import ItemHeading from '../../../shared/ItemHeading';
+import AddItemButton from '../../../shared/AddItemButton';
 
 const CertificationsTab = ({ data, onChange }) => {
   const context = useContext(AppContext);
@@ -44,15 +48,47 @@ const CertificationsTab = ({ data, onChange }) => {
         />
       ))}
 
-      <AddItem dispatch={dispatch} />
+      <AddItem heading={data.certifications.heading} dispatch={dispatch} />
     </>
   );
 };
 
-const AddItem = ({ dispatch }) => {
+const Form = ({ item, onChange, identifier = '' }) => {
+  const { t } = useTranslation(['leftSidebar', 'app']);
+
+  return (
+    <div>
+      <TextField
+        className="mb-6"
+        label={t('certifications.title.label')}
+        placeholder="CS50: Intro to Computer Science"
+        value={item.title}
+        onChange={v => onChange(`${identifier}title`, v)}
+      />
+
+      <TextField
+        className="mb-6"
+        label={t('certifications.subtitle.label')}
+        placeholder="Harvard University"
+        value={item.subtitle}
+        onChange={v => onChange(`${identifier}subtitle`, v)}
+      />
+
+      <TextArea
+        className="mb-6"
+        label={t('app:item.description.label')}
+        value={item.description}
+        onChange={v => onChange(`${identifier}description`, v)}
+      />
+    </div>
+  );
+};
+
+const AddItem = ({ heading, dispatch }) => {
   const [isOpen, setOpen] = useState(false);
   const [item, setItem] = useState({
     id: uuidv4(),
+    enable: true,
     title: '',
     subtitle: '',
     description: '',
@@ -67,6 +103,7 @@ const AddItem = ({ dispatch }) => {
 
     setItem({
       id: uuidv4(),
+      enable: true,
       title: '',
       subtitle: '',
       description: '',
@@ -77,48 +114,12 @@ const AddItem = ({ dispatch }) => {
 
   return (
     <div className="my-4 border border-gray-200 rounded p-5">
-      <div
-        className="flex justify-between items-center cursor-pointer"
-        onClick={() => setOpen(!isOpen)}
-      >
-        <h6 className="text-sm font-medium">Add Certification</h6>
-        <i className="material-icons">{isOpen ? 'expand_less' : 'expand_more'}</i>
-      </div>
+      <ItemHeading heading={heading} setOpen={setOpen} isOpen={isOpen} />
 
       <div className={`mt-6 ${isOpen ? 'block' : 'hidden'}`}>
-        <TextField
-          label="Title"
-          className="mb-6"
-          placeholder="Android Development Nanodegree"
-          value={item.title}
-          onChange={v => onChange('title', v)}
-        />
+        <Form item={item} onChange={onChange} />
 
-        <TextField
-          label="Subtitle"
-          className="mb-6"
-          placeholder="Udacity"
-          value={item.subtitle}
-          onChange={v => onChange('subtitle', v)}
-        />
-
-        <TextArea
-          label="Description"
-          className="mb-6"
-          value={item.description}
-          onChange={v => onChange('description', v)}
-        />
-
-        <button
-          type="button"
-          onClick={onSubmit}
-          className="bg-gray-600 hover:bg-gray-700 text-white text-sm font-medium py-2 px-5 rounded"
-        >
-          <div className="flex items-center">
-            <i className="material-icons mr-2 font-bold text-base">add</i>
-            <span className="text-sm">Add</span>
-          </div>
-        </button>
+        <AddItemButton onSubmit={onSubmit} />
       </div>
     </div>
   );
@@ -126,80 +127,24 @@ const AddItem = ({ dispatch }) => {
 
 const Item = ({ item, index, onChange, dispatch, first, last }) => {
   const [isOpen, setOpen] = useState(false);
-  const identifier = `data.certifications.items[${index}]`;
+  const identifier = `data.certifications.items[${index}].`;
 
   return (
     <div className="my-4 border border-gray-200 rounded p-5">
-      <div
-        className="flex justify-between items-center cursor-pointer"
-        onClick={() => setOpen(!isOpen)}
-      >
-        <h6 className="text-sm font-medium">{item.title}</h6>
-        <i className="material-icons">{isOpen ? 'expand_less' : 'expand_more'}</i>
-      </div>
+      <ItemHeading title={item.title} setOpen={setOpen} isOpen={isOpen} />
 
       <div className={`mt-6 ${isOpen ? 'block' : 'hidden'}`}>
-        <TextField
-          label="Title"
-          className="mb-6"
-          placeholder="Android Development Nanodegree"
-          value={item.title}
-          onChange={v => onChange(`${identifier}.title`, v)}
+        <Form item={item} onChange={onChange} identifier={identifier} />
+
+        <ItemActions
+          dispatch={dispatch}
+          first={first}
+          identifier={identifier}
+          item={item}
+          last={last}
+          onChange={onChange}
+          type="certifications"
         />
-
-        <TextField
-          label="Subtitle"
-          className="mb-6"
-          placeholder="Udacity"
-          value={item.subtitle}
-          onChange={v => onChange(`${identifier}.subtitle`, v)}
-        />
-
-        <TextArea
-          label="Description"
-          className="mb-6"
-          value={item.description}
-          onChange={v => onChange(`${identifier}.description`, v)}
-        />
-
-        <div className="flex justify-between">
-          <button
-            type="button"
-            onClick={() => deleteItem(dispatch, 'certifications', item)}
-            className="bg-red-600 hover:bg-red-700 text-white text-sm font-medium py-2 px-5 rounded"
-          >
-            <div className="flex items-center">
-              <i className="material-icons mr-2 font-bold text-base">delete</i>
-              <span className="text-sm">Delete</span>
-            </div>
-          </button>
-
-          <div className="flex">
-            {!first && (
-              <button
-                type="button"
-                onClick={() => moveItemUp(dispatch, 'certifications', item)}
-                className="bg-gray-600 hover:bg-gray-700 text-white text-sm font-medium py-2 px-4 rounded mr-2"
-              >
-                <div className="flex items-center">
-                  <i className="material-icons font-bold text-base">arrow_upward</i>
-                </div>
-              </button>
-            )}
-
-            {!last && (
-              <button
-                type="button"
-                onClick={() => moveItemDown(dispatch, 'certifications', item)}
-                className="bg-gray-600 hover:bg-gray-700 text-white text-sm font-medium py-2 px-4 rounded"
-              >
-                <div className="flex items-center">
-                  <i className="material-icons font-bold text-base">arrow_downward</i>
-                </div>
-              </button>
-            )}
-          </div>
-        </div>
       </div>
     </div>
   );

@@ -1,11 +1,15 @@
 import React, { useState, useContext } from 'react';
+import { useTranslation } from 'react-i18next';
 import { v4 as uuidv4 } from 'uuid';
 import set from 'lodash/set';
 
 import TextField from '../../../shared/TextField';
 import AppContext from '../../../context/AppContext';
 import Checkbox from '../../../shared/Checkbox';
-import { addItem, deleteItem, moveItemUp, moveItemDown } from '../../../utils';
+import { addItem } from '../../../utils';
+import ItemActions from '../../../shared/ItemActions';
+import ItemHeading from '../../../shared/ItemHeading';
+import AddItemButton from '../../../shared/AddItemButton';
 
 const ExtrasTab = ({ data, onChange }) => {
   const context = useContext(AppContext);
@@ -43,15 +47,40 @@ const ExtrasTab = ({ data, onChange }) => {
         />
       ))}
 
-      <AddItem dispatch={dispatch} />
+      <AddItem heading={data.extras.heading} dispatch={dispatch} />
     </>
   );
 };
 
-const AddItem = ({ dispatch }) => {
+const Form = ({ item, onChange, identifier = '' }) => {
+  const { t } = useTranslation('leftSidebar');
+
+  return (
+    <div>
+      <TextField
+        className="mb-6"
+        label={t('extras.key.label')}
+        placeholder="Date of Birth"
+        value={item.key}
+        onChange={v => onChange(`${identifier}key`, v)}
+      />
+
+      <TextField
+        className="mb-6"
+        label={t('extras.value.label')}
+        placeholder="6th August 1995"
+        value={item.value}
+        onChange={v => onChange(`${identifier}value`, v)}
+      />
+    </div>
+  );
+};
+
+const AddItem = ({ heading, dispatch }) => {
   const [isOpen, setOpen] = useState(false);
   const [item, setItem] = useState({
     id: uuidv4(),
+    enable: true,
     key: '',
     value: '',
   });
@@ -65,6 +94,7 @@ const AddItem = ({ dispatch }) => {
 
     setItem({
       id: uuidv4(),
+      enable: true,
       key: '',
       value: '',
     });
@@ -74,41 +104,12 @@ const AddItem = ({ dispatch }) => {
 
   return (
     <div className="my-4 border border-gray-200 rounded p-5">
-      <div
-        className="flex justify-between items-center cursor-pointer"
-        onClick={() => setOpen(!isOpen)}
-      >
-        <h6 className="text-sm font-medium">Add Item</h6>
-        <i className="material-icons">{isOpen ? 'expand_less' : 'expand_more'}</i>
-      </div>
+      <ItemHeading heading={heading} setOpen={setOpen} isOpen={isOpen} />
 
       <div className={`mt-6 ${isOpen ? 'block' : 'hidden'}`}>
-        <TextField
-          label="Key"
-          className="mb-6"
-          placeholder="Date of Birth"
-          value={item.key}
-          onChange={v => onChange('key', v)}
-        />
+        <Form item={item} onChange={onChange} />
 
-        <TextField
-          label="Value"
-          className="mb-6"
-          placeholder="6th August 1995"
-          value={item.value}
-          onChange={v => onChange('value', v)}
-        />
-
-        <button
-          type="button"
-          onClick={onSubmit}
-          className="bg-gray-600 hover:bg-gray-700 text-white text-sm font-medium py-2 px-5 rounded"
-        >
-          <div className="flex items-center">
-            <i className="material-icons mr-2 font-bold text-base">add</i>
-            <span className="text-sm">Add</span>
-          </div>
-        </button>
+        <AddItemButton onSubmit={onSubmit} />
       </div>
     </div>
   );
@@ -116,73 +117,24 @@ const AddItem = ({ dispatch }) => {
 
 const Item = ({ item, index, onChange, dispatch, first, last }) => {
   const [isOpen, setOpen] = useState(false);
-  const identifier = `data.extras.items[${index}]`;
+  const identifier = `data.extras.items[${index}].`;
 
   return (
     <div className="my-4 border border-gray-200 rounded p-5">
-      <div
-        className="flex justify-between items-center cursor-pointer"
-        onClick={() => setOpen(!isOpen)}
-      >
-        <h6 className="text-sm font-medium">{item.key}</h6>
-        <i className="material-icons">{isOpen ? 'expand_less' : 'expand_more'}</i>
-      </div>
+      <ItemHeading title={item.key} setOpen={setOpen} isOpen={isOpen} />
 
       <div className={`mt-6 ${isOpen ? 'block' : 'hidden'}`}>
-        <TextField
-          label="Key"
-          className="mb-6"
-          placeholder="Date of Birth"
-          value={item.key}
-          onChange={v => onChange(`${identifier}.key`, v)}
+        <Form item={item} onChange={onChange} identifier={identifier} />
+
+        <ItemActions
+          dispatch={dispatch}
+          first={first}
+          identifier={identifier}
+          item={item}
+          last={last}
+          onChange={onChange}
+          type="extras"
         />
-
-        <TextField
-          label="Value"
-          className="mb-6"
-          placeholder="6th August 1995"
-          value={item.value}
-          onChange={v => onChange(`${identifier}.value`, v)}
-        />
-
-        <div className="mt-6 flex justify-between">
-          <button
-            type="button"
-            onClick={() => deleteItem(dispatch, 'extras', item)}
-            className="bg-red-600 hover:bg-red-700 text-white text-sm font-medium py-2 px-5 rounded"
-          >
-            <div className="flex items-center">
-              <i className="material-icons mr-2 font-bold text-base">delete</i>
-              <span className="text-sm">Delete</span>
-            </div>
-          </button>
-
-          <div className="flex">
-            {!first && (
-              <button
-                type="button"
-                onClick={() => moveItemUp(dispatch, 'extras', item)}
-                className="bg-gray-600 hover:bg-gray-700 text-white text-sm font-medium py-2 px-4 rounded mr-2"
-              >
-                <div className="flex items-center">
-                  <i className="material-icons font-bold text-base">arrow_upward</i>
-                </div>
-              </button>
-            )}
-
-            {!last && (
-              <button
-                type="button"
-                onClick={() => moveItemDown(dispatch, 'extras', item)}
-                className="bg-gray-600 hover:bg-gray-700 text-white text-sm font-medium py-2 px-4 rounded"
-              >
-                <div className="flex items-center">
-                  <i className="material-icons font-bold text-base">arrow_downward</i>
-                </div>
-              </button>
-            )}
-          </div>
-        </div>
       </div>
     </div>
   );

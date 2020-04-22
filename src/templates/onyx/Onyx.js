@@ -52,6 +52,7 @@ const Onyx = () => {
   );
 
   const Objective = () =>
+    data.objective &&
     data.objective.enable && (
       <div>
         <Heading title={data.objective.heading} />
@@ -60,7 +61,7 @@ const Onyx = () => {
     );
 
   const WorkItem = x => (
-    <div key={x.title} className="mt-3">
+    <div key={x.id} className="mt-3">
       <div className="flex justify-between">
         <div>
           <h6 className="font-semibold">{x.title}</h6>
@@ -75,15 +76,16 @@ const Onyx = () => {
   );
 
   const Work = () =>
+    data.work &&
     data.work.enable && (
       <div>
         <Heading title={data.work.heading} />
-        {data.work.items.map(WorkItem)}
+        {data.work.items.filter(x => x.enable).map(WorkItem)}
       </div>
     );
 
   const EducationItem = x => (
-    <div key={x.name} className="mt-3">
+    <div key={x.id} className="mt-3">
       <div className="flex justify-between">
         <div>
           <h6 className="font-semibold">{x.name}</h6>
@@ -101,15 +103,16 @@ const Onyx = () => {
   );
 
   const Education = () =>
+    data.education &&
     data.education.enable && (
       <div>
         <Heading title={data.education.heading} />
-        {data.education.items.map(EducationItem)}
+        {data.education.items.filter(x => x.enable).map(EducationItem)}
       </div>
     );
 
   const AwardItem = x => (
-    <div key={x.title} className="mt-3">
+    <div key={x.id} className="mt-3">
       <h6 className="font-semibold">{x.title}</h6>
       <p className="text-xs">{x.subtitle}</p>
       <ReactMarkdown className="mt-2 text-sm" source={x.description} />
@@ -117,15 +120,16 @@ const Onyx = () => {
   );
 
   const Awards = () =>
+    data.awards &&
     data.awards.enable && (
       <div>
         <Heading title={data.awards.heading} />
-        {data.awards.items.map(AwardItem)}
+        {data.awards.items.filter(x => x.enable).map(AwardItem)}
       </div>
     );
 
   const CertificationItem = x => (
-    <div key={x.title} className="mt-3">
+    <div key={x.id} className="mt-3">
       <h6 className="font-semibold">{x.title}</h6>
       <p className="text-xs">{x.subtitle}</p>
       <ReactMarkdown className="mt-2 text-sm" source={x.description} />
@@ -133,10 +137,11 @@ const Onyx = () => {
   );
 
   const Certifications = () =>
+    data.certifications &&
     data.certifications.enable && (
       <div>
         <Heading title={data.certifications.heading} />
-        {data.certifications.items.map(CertificationItem)}
+        {data.certifications.items.filter(x => x.enable).map(CertificationItem)}
       </div>
     );
 
@@ -154,6 +159,7 @@ const Onyx = () => {
   );
 
   const Skills = () =>
+    data.skills &&
     data.skills.enable && (
       <div>
         <Heading title={data.skills.heading} />
@@ -165,20 +171,26 @@ const Onyx = () => {
     <div key={x.id} className="grid grid-cols-2 items-center py-2">
       <h6 className="text-sm font-medium">{x.key}</h6>
       <div className="flex">
-        {Array.from(Array(x.value)).map((_, i) => (
-          <i key={i} className="material-icons text-lg" style={{ color: theme.colors.accent }}>
-            star
-          </i>
-        ))}
+        {x.level && <div className="font-bold text-sm mr-2">{x.level}</div>}
+        {x.rating !== 0 && (
+          <div className="flex">
+            {Array.from(Array(x.rating)).map((_, i) => (
+              <i key={i} className="material-icons text-lg" style={{ color: theme.colors.accent }}>
+                star
+              </i>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
 
   const Languages = () =>
+    data.languages &&
     data.languages.enable && (
       <div>
         <Heading title={data.languages.heading} />
-        <div className="w-3/4">{data.languages.items.map(LanguageItem)}</div>
+        <div className="w-3/4">{data.languages.items.filter(x => x.enable).map(LanguageItem)}</div>
       </div>
     );
 
@@ -193,32 +205,37 @@ const Onyx = () => {
   );
 
   const References = () =>
+    data.references &&
     data.references.enable && (
       <div>
         <Heading title={data.references.heading} />
-        <div className="grid grid-cols-3 gap-6">{data.references.items.map(ReferenceItem)}</div>
+        <div className="grid grid-cols-3 gap-6">
+          {data.references.items.filter(x => x.enable).map(ReferenceItem)}
+        </div>
       </div>
     );
 
   const ExtraItem = x => (
-    <tr key={x.key}>
+    <tr key={x.id}>
       <td className="border font-medium px-4 py-2 text-sm">{x.key}</td>
       <td className="border px-4 py-2 text-sm">{x.value}</td>
     </tr>
   );
 
   const Extras = () =>
+    data.extras &&
     data.extras.enable && (
       <div>
         <Heading title={data.extras.heading} />
         <table className="w-2/3 table-auto">
-          <tbody>{data.extras.items.map(ExtraItem)}</tbody>
+          <tbody>{data.extras.items.filter(x => x.enable).map(ExtraItem)}</tbody>
         </table>
       </div>
     );
 
   return (
     <div
+      className="p-10"
       style={{
         fontFamily: theme.font.family,
         backgroundColor: theme.colors.background,
@@ -243,6 +260,7 @@ const Onyx = () => {
             value={data.profile.email}
             link={`mailto:${data.profile.email}`}
           />
+          <ContactItem icon="location_on" value={data.profile.address.line3} />
         </div>
       </div>
 

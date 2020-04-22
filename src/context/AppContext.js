@@ -1,10 +1,9 @@
-/* eslint-disable no-case-declarations */
 import React, { createContext, useReducer } from 'react';
 import get from 'lodash/get';
 import set from 'lodash/set';
 import remove from 'lodash/remove';
 
-import dummyData from '../assets/dummy/data.json';
+import demoData from '../assets/demo/data.json';
 import { move } from '../utils';
 
 const initialState = {
@@ -81,6 +80,9 @@ const initialState = {
       accent: '#f44336',
     },
   },
+  settings: {
+    language: 'en',
+  },
 };
 
 const reducer = (state, { type, payload }) => {
@@ -95,7 +97,7 @@ const reducer = (state, { type, payload }) => {
       return set({ ...state }, `data.${payload.key}.items`, items);
     case 'delete_item':
       items = get({ ...state }, `data.${payload.key}.items`, []);
-      remove(items, x => x === payload.value);
+      remove(items, (x) => x === payload.value);
       return set({ ...state }, `data.${payload.key}.items`, items);
     case 'move_item_up':
       items = get({ ...state }, `data.${payload.key}.items`, []);
@@ -112,20 +114,26 @@ const reducer = (state, { type, payload }) => {
       return state;
     case 'import_data':
       if (payload === null) return initialState;
+
+      for (const section of Object.keys(initialState.data)) {
+        if (!(section in payload.data)) {
+          payload.data[section] = initialState.data[section];
+        }
+      }
+
       return {
         ...state,
-        data: payload.data,
-        theme: payload.theme,
+        ...payload,
       };
-    case 'load_dummy_data':
+    case 'load_demo_data':
       return {
         ...state,
-        ...dummyData,
+        ...demoData,
       };
     case 'reset':
       return initialState;
     default:
-      throw state;
+      return state;
   }
 };
 

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
+import { useTranslation } from 'react-i18next';
 import { v4 as uuidv4 } from 'uuid';
 import set from 'lodash/set';
 
@@ -6,7 +7,10 @@ import TextField from '../../../shared/TextField';
 import TextArea from '../../../shared/TextArea';
 import AppContext from '../../../context/AppContext';
 import Checkbox from '../../../shared/Checkbox';
-import { addItem, deleteItem, moveItemUp, moveItemDown } from '../../../utils';
+import { addItem } from '../../../utils';
+import ItemActions from '../../../shared/ItemActions';
+import ItemHeading from '../../../shared/ItemHeading';
+import AddItemButton from '../../../shared/AddItemButton';
 
 const ReferencesTab = ({ data, onChange }) => {
   const context = useContext(AppContext);
@@ -63,16 +67,65 @@ const ReferencesTab = ({ data, onChange }) => {
           />
         ))}
 
-        <AddItem dispatch={dispatch} />
+        <AddItem heading={data.references.heading} dispatch={dispatch} />
       </>
     )
   );
 };
 
-const AddItem = ({ dispatch }) => {
+const Form = ({ item, onChange, identifier = '' }) => {
+  const { t } = useTranslation(['leftSidebar', 'app']);
+
+  return (
+    <div>
+      <TextField
+        className="mb-6"
+        label={t('references.name.label')}
+        placeholder="Richard Hendricks"
+        value={item.name}
+        onChange={v => onChange(`${identifier}name`, v)}
+      />
+
+      <TextField
+        className="mb-6"
+        label={t('references.position.label')}
+        placeholder="CEO, Pied Piper"
+        value={item.position}
+        onChange={v => onChange(`${identifier}position`, v)}
+      />
+
+      <TextField
+        className="mb-6"
+        label={t('references.phone.label')}
+        placeholder="+1 541 754 3010"
+        value={item.phone}
+        onChange={v => onChange(`${identifier}phone`, v)}
+      />
+
+      <TextField
+        className="mb-6"
+        label={t('references.email.label')}
+        placeholder="richard@piedpiper.com"
+        value={item.email}
+        onChange={v => onChange(`${identifier}email`, v)}
+      />
+
+      <TextArea
+        rows="5"
+        className="mb-6"
+        label={t('app:item.description.label')}
+        value={item.description}
+        onChange={v => onChange(`${identifier}description`, v)}
+      />
+    </div>
+  );
+};
+
+const AddItem = ({ heading, dispatch }) => {
   const [isOpen, setOpen] = useState(false);
   const [item, setItem] = useState({
     id: uuidv4(),
+    enable: true,
     name: '',
     position: '',
     phone: '',
@@ -89,6 +142,7 @@ const AddItem = ({ dispatch }) => {
 
     setItem({
       id: uuidv4(),
+      enable: true,
       name: '',
       position: '',
       phone: '',
@@ -101,66 +155,12 @@ const AddItem = ({ dispatch }) => {
 
   return (
     <div className="my-4 border border-gray-200 rounded p-5">
-      <div
-        className="flex justify-between items-center cursor-pointer"
-        onClick={() => setOpen(!isOpen)}
-      >
-        <h6 className="text-sm font-medium">Add Reference</h6>
-        <i className="material-icons">{isOpen ? 'expand_less' : 'expand_more'}</i>
-      </div>
+      <ItemHeading heading={heading} setOpen={setOpen} isOpen={isOpen} />
 
       <div className={`mt-6 ${isOpen ? 'block' : 'hidden'}`}>
-        <TextField
-          label="Name"
-          className="mb-6"
-          placeholder="Steve Jobs"
-          value={item.name}
-          onChange={v => onChange('name', v)}
-        />
+        <Form item={item} onChange={onChange} />
 
-        <TextField
-          label="Position"
-          className="mb-6"
-          placeholder="CEO of Apple"
-          value={item.position}
-          onChange={v => onChange('position', v)}
-        />
-
-        <TextField
-          label="Phone Number"
-          className="mb-6"
-          placeholder="+1 123 456 7890"
-          value={item.phone}
-          onChange={v => onChange('phone', v)}
-        />
-
-        <TextField
-          label="Email Address"
-          className="mb-6"
-          placeholder="steve@apple.com"
-          value={item.email}
-          onChange={v => onChange('email', v)}
-        />
-
-        <TextArea
-          rows="5"
-          className="mb-6"
-          label="Description"
-          placeholder="You can write about how you and the reference contact worked together and which projects you were a part of."
-          value={item.description}
-          onChange={v => onChange('description', v)}
-        />
-
-        <button
-          type="button"
-          onClick={onSubmit}
-          className="bg-gray-600 hover:bg-gray-700 text-white text-sm font-medium py-2 px-5 rounded"
-        >
-          <div className="flex items-center">
-            <i className="material-icons mr-2 font-bold text-base">add</i>
-            <span className="text-sm">Add</span>
-          </div>
-        </button>
+        <AddItemButton onSubmit={onSubmit} />
       </div>
     </div>
   );
@@ -168,98 +168,24 @@ const AddItem = ({ dispatch }) => {
 
 const Item = ({ item, index, onChange, dispatch, first, last }) => {
   const [isOpen, setOpen] = useState(false);
-  const identifier = `data.references.items[${index}]`;
+  const identifier = `data.references.items[${index}].`;
 
   return (
     <div className="my-4 border border-gray-200 rounded p-5">
-      <div
-        className="flex justify-between items-center cursor-pointer"
-        onClick={() => setOpen(!isOpen)}
-      >
-        <h6 className="text-sm font-medium">{item.name}</h6>
-        <i className="material-icons">{isOpen ? 'expand_less' : 'expand_more'}</i>
-      </div>
+      <ItemHeading title={item.name} setOpen={setOpen} isOpen={isOpen} />
 
       <div className={`mt-6 ${isOpen ? 'block' : 'hidden'}`}>
-        <TextField
-          label="Name"
-          className="mb-6"
-          placeholder="Steve Jobs"
-          value={item.name}
-          onChange={v => onChange(`${identifier}.name`, v)}
+        <Form item={item} onChange={onChange} identifier={identifier} />
+
+        <ItemActions
+          dispatch={dispatch}
+          first={first}
+          identifier={identifier}
+          item={item}
+          last={last}
+          onChange={onChange}
+          type="references"
         />
-
-        <TextField
-          label="Position"
-          className="mb-6"
-          placeholder="CEO of Apple"
-          value={item.position}
-          onChange={v => onChange(`${identifier}.position`, v)}
-        />
-
-        <TextField
-          label="Phone Number"
-          className="mb-6"
-          placeholder="+1 123 456 7890"
-          value={item.phone}
-          onChange={v => onChange(`${identifier}.phone`, v)}
-        />
-
-        <TextField
-          label="Email Address"
-          className="mb-6"
-          placeholder="steve@apple.com"
-          value={item.email}
-          onChange={v => onChange(`${identifier}.email`, v)}
-        />
-
-        <TextArea
-          rows="5"
-          className="mb-6"
-          label="Description"
-          placeholder="You can write about how you and the reference contact worked together and which projects you were a part of."
-          value={item.description}
-          onChange={v => onChange(`${identifier}.description`, v)}
-        />
-
-        <div className="flex justify-between">
-          <button
-            type="button"
-            onClick={() => deleteItem(dispatch, 'references', item)}
-            className="bg-red-600 hover:bg-red-700 text-white text-sm font-medium py-2 px-5 rounded"
-          >
-            <div className="flex items-center">
-              <i className="material-icons mr-2 font-bold text-base">delete</i>
-              <span className="text-sm">Delete</span>
-            </div>
-          </button>
-
-          <div className="flex">
-            {!first && (
-              <button
-                type="button"
-                onClick={() => moveItemUp(dispatch, 'references', item)}
-                className="bg-gray-600 hover:bg-gray-700 text-white text-sm font-medium py-2 px-4 rounded mr-2"
-              >
-                <div className="flex items-center">
-                  <i className="material-icons font-bold text-base">arrow_upward</i>
-                </div>
-              </button>
-            )}
-
-            {!last && (
-              <button
-                type="button"
-                onClick={() => moveItemDown(dispatch, 'references', item)}
-                className="bg-gray-600 hover:bg-gray-700 text-white text-sm font-medium py-2 px-4 rounded"
-              >
-                <div className="flex items-center">
-                  <i className="material-icons font-bold text-base">arrow_downward</i>
-                </div>
-              </button>
-            )}
-          </div>
-        </div>
       </div>
     </div>
   );

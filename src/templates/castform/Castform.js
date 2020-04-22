@@ -8,6 +8,21 @@ const Castform = () => {
   const { state } = context;
   const { data, theme } = state;
 
+  const Photo = () =>
+    data.profile.photo !== '' && (
+      <div className="mt-5 ml-5">
+        <img
+          className="w-32 h-32 rounded-full"
+          style={{
+            borderWidth: 6,
+            borderColor: theme.colors.background,
+          }}
+          src={data.profile.photo}
+          alt="Profile Photograph"
+        />
+      </div>
+    );
+
   const PersonalInformation = () => (
     <div className="pt-5 px-5">
       <h1 className="text-2xl font-bold">
@@ -70,18 +85,19 @@ const Castform = () => {
   );
 
   const Skills = () =>
+    data.skills &&
     data.skills.enable && (
       <div>
-        <Heading title="Skills" />
+        <Heading title={data.skills.heading} />
         <ul className="list-none px-5">{data.skills.items.map(SkillItem)}</ul>
       </div>
     );
 
   const Objective = () =>
-    data.objective.enable && <p className="m-5 text-sm">{data.objective.body}</p>;
+    data.objective && data.objective.enable && <p className="m-5 text-sm">{data.objective.body}</p>;
 
   const WorkItem = x => (
-    <div key={x.title} className="my-3 px-5">
+    <div key={x.id} className="my-3 px-5">
       <div className="flex justify-between">
         <div>
           <h6 className="font-semibold">{x.title}</h6>
@@ -96,10 +112,11 @@ const Castform = () => {
   );
 
   const Work = () =>
+    data.work &&
     data.work.enable && (
       <div>
         <Heading light title={data.work.heading} />
-        {data.work.items.map(WorkItem)}
+        {data.work.items.filter(x => x.enable).map(WorkItem)}
       </div>
     );
 
@@ -114,46 +131,56 @@ const Castform = () => {
   );
 
   const References = () =>
+    data.references &&
     data.references.enable && (
       <div>
         <Heading light title={data.references.heading} />
         <div className="grid grid-cols-2 gap-6 px-5">
-          {data.references.items.map(ReferenceItem)}
+          {data.references.items.filter(x => x.enable).map(ReferenceItem)}
         </div>
       </div>
     );
 
   const LanguageItem = x => (
     <div key={x.id} className="flex flex-col my-2">
-      <h6 className="text-sm font-medium mb-1">{x.key}</h6>
-      <div className="relative h-5">
-        <div
-          className="absolute mb-1 inset-0"
-          style={{
-            backgroundColor: 'rgba(0, 0, 0, 0.25)',
-          }}
-        />
-        <div
-          className="absolute mb-1 inset-0 rounded"
-          style={{
-            width: `${x.value * 20}%`,
-            backgroundColor: 'rgba(0, 0, 0, 0.3)',
-          }}
-        />
+      <div className="flex justify-between items-center">
+        <h6 className="text-sm font-medium mb-1">{x.key}</h6>
+        {x.level !== '' && <div className="font-bold text-sm">{x.level}</div>}
       </div>
+
+      {x.rating !== 0 && (
+        <div className="relative h-5">
+          <div
+            className="absolute mb-1 inset-0"
+            style={{
+              backgroundColor: 'rgba(0, 0, 0, 0.25)',
+            }}
+          />
+          <div
+            className="absolute mb-1 inset-0 rounded"
+            style={{
+              width: `${x.rating * 20}%`,
+              backgroundColor: 'rgba(0, 0, 0, 0.3)',
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 
   const Languages = () =>
+    data.languages &&
     data.languages.enable && (
       <div>
         <Heading title={data.languages.heading} />
-        <div className="px-5 mb-6">{data.languages.items.map(LanguageItem)}</div>
+        <div className="px-5 mb-6">
+          {data.languages.items.filter(x => x.enable).map(LanguageItem)}
+        </div>
       </div>
     );
 
   const EducationItem = x => (
-    <div key={x.name} className="my-3 px-5">
+    <div key={x.id} className="my-3 px-5">
       <div className="flex justify-between">
         <div>
           <h6 className="font-semibold">{x.name}</h6>
@@ -171,15 +198,16 @@ const Castform = () => {
   );
 
   const Education = () =>
+    data.education &&
     data.education.enable && (
       <div>
         <Heading light title={data.education.heading} />
-        {data.education.items.map(EducationItem)}
+        {data.education.items.filter(x => x.enable).map(EducationItem)}
       </div>
     );
 
   const AwardItem = x => (
-    <div key={x.title} className="my-3 px-5">
+    <div key={x.id} className="my-3 px-5">
       <h6 className="font-semibold">{x.title}</h6>
       <p className="text-xs">{x.subtitle}</p>
       <ReactMarkdown className="mt-2 text-sm" source={x.description} />
@@ -187,15 +215,16 @@ const Castform = () => {
   );
 
   const Awards = () =>
+    data.awards &&
     data.awards.enable && (
       <div>
         <Heading light title={data.awards.heading} />
-        {data.awards.items.map(AwardItem)}
+        {data.awards.items.filter(x => x.enable).map(AwardItem)}
       </div>
     );
 
   const CertificationItem = x => (
-    <div key={x.title} className="my-3 px-5">
+    <div key={x.id} className="my-3 px-5">
       <h6 className="font-semibold">{x.title}</h6>
       <p className="text-xs">{x.subtitle}</p>
       <ReactMarkdown className="mt-2 text-sm" source={x.description} />
@@ -203,25 +232,27 @@ const Castform = () => {
   );
 
   const Certifications = () =>
+    data.certifications &&
     data.certifications.enable && (
       <div>
         <Heading title={data.certifications.heading} />
-        {data.certifications.items.map(CertificationItem)}
+        {data.certifications.items.filter(x => x.enable).map(CertificationItem)}
       </div>
     );
 
-  const ExtraItem = ({ key, value }) => (
-    <div className="px-5 my-2">
-      <h6 className="text-xs font-bold">{key}</h6>
-      <div className="text-sm">{value}</div>
+  const ExtraItem = x => (
+    <div key={x.id} className="px-5 my-2">
+      <h6 className="text-xs font-bold">{x.key}</h6>
+      <div className="text-sm">{x.value}</div>
     </div>
   );
 
   const Extras = () =>
+    data.extras &&
     data.extras.enable && (
       <div>
         <Heading title={data.extras.heading} />
-        {data.extras.items.map(ExtraItem)}
+        {data.extras.items.filter(x => x.enable).map(ExtraItem)}
       </div>
     );
 
@@ -235,23 +266,13 @@ const Castform = () => {
     >
       <div className="grid grid-cols-12">
         <div
-          className="col-span-4 rounded"
+          className="col-span-4"
           style={{
             color: theme.colors.background,
             backgroundColor: theme.colors.accent,
           }}
         >
-          <div className="mt-5 ml-5">
-            <img
-              className="w-32 h-32 rounded-full"
-              style={{
-                borderWidth: 6,
-                borderColor: theme.colors.background,
-              }}
-              src={data.profile.photo}
-              alt="Profile Photograph"
-            />
-          </div>
+          <Photo />
           <PersonalInformation />
           <ContactInformation />
           <Skills />

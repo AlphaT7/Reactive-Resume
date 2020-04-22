@@ -1,3 +1,7 @@
+/* eslint-disable new-cap */
+import html2canvas from 'html2canvas';
+import * as jsPDF from 'jspdf';
+
 const move = (array, element, delta) => {
   const index = array.indexOf(element);
   const newIndex = index + delta;
@@ -90,4 +94,109 @@ const moveItemDown = (dispatch, key, value) => {
   saveData(dispatch);
 };
 
-export { move, hexToRgb, copyToClipboard, saveData, addItem, deleteItem, moveItemUp, moveItemDown };
+const importJson = (event, dispatch) => {
+  const fr = new FileReader();
+  fr.addEventListener('load', () => {
+    const importedObject = JSON.parse(fr.result);
+    dispatch({ type: 'import_data', payload: importedObject });
+    dispatch({ type: 'save_data' });
+  });
+  fr.readAsText(event.target.files[0]);
+};
+
+const saveAsPdf = (pageRef, panZoomRef, quality, type) =>
+  new Promise(resolve => {
+    panZoomRef.current.autoCenter(1);
+    panZoomRef.current.reset();
+
+    setTimeout(() => {
+      html2canvas(pageRef.current, {
+        scale: 5,
+        useCORS: true,
+        allowTaint: true,
+      }).then(canvas => {
+        const image = canvas.toDataURL('image/jpeg', quality / 100);
+        const doc = new jsPDF({
+          orientation: 'portrait',
+          unit: 'px',
+          format: type === 'unconstrained' ? [canvas.width, canvas.height] : 'a4',
+        });
+
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
+
+        const widthRatio = pageWidth / canvas.width;
+        const heightRatio = pageHeight / canvas.height;
+        const ratio = widthRatio > heightRatio ? heightRatio : widthRatio;
+
+        const canvasWidth = canvas.width * ratio;
+        const canvasHeight = canvas.height * ratio;
+
+        let marginX = 0;
+        let marginY = 0;
+
+        if (type !== 'unconstrained') {
+          marginX = (pageWidth - canvasWidth) / 2;
+          marginY = (pageHeight - canvasHeight) / 2;
+        }
+
+        doc.addImage(image, 'JPEG', marginX, marginY, canvasWidth, canvasHeight, null, 'SLOW');
+        doc.save(`RxResume_${Date.now()}.pdf`);
+        resolve();
+      });
+    }, 250);
+  });
+
+const saveAsMultiPagePdf = (pageRef, panZoomRef, quality) =>
+  new Promise(resolve => {
+    panZoomRef.current.autoCenter(1);
+    panZoomRef.current.reset();
+
+    setTimeout(() => {
+      html2canvas(pageRef.current, {
+        scale: 5,
+        useCORS: true,
+        allowTaint: true,
+      }).then(canvas => {
+        const image = canvas.toDataURL('image/jpeg', quality / 100);
+        const doc = new jsPDF({
+          orientation: 'portrait',
+          unit: 'px',
+          format: 'a4',
+        });
+
+        const pageHeight = doc.internal.pageSize.getHeight();
+        const canvasWidth = doc.internal.pageSize.getWidth();
+        const canvasHeight = (canvas.height * canvasWidth) / canvas.width;
+        let marginTop = 0;
+        let heightLeft = canvasHeight;
+
+        doc.addImage(image, 'JPEG', 0, marginTop, canvasWidth, canvasHeight);
+        heightLeft -= pageHeight;
+
+        while (heightLeft >= 0) {
+          marginTop = heightLeft - canvasHeight;
+          doc.addPage();
+          doc.addImage(image, 'JPEG', 0, marginTop, canvasWidth, canvasHeight);
+          heightLeft -= pageHeight;
+        }
+
+        doc.save(`RxResume_${Date.now()}.pdf`);
+        resolve();
+      });
+    }, 250);
+  });
+
+export {
+  move,
+  hexToRgb,
+  copyToClipboard,
+  saveData,
+  addItem,
+  deleteItem,
+  moveItemUp,
+  moveItemDown,
+  importJson,
+  saveAsPdf,
+  saveAsMultiPagePdf,
+};

@@ -8,6 +8,15 @@
 @import url('https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;500;700&display=swap');
 
+* {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+*::-webkit-scrollbar {
+  display: none;
+}
+
 html,
 body {
   height: 100%;
@@ -17,9 +26,38 @@ body {
   font-family: 'Montserrat', sans-serif;
 }
 
-ul {
-  list-style: disc;
-  list-style-position: inside !important;
+ul:not(.list-none) li:before {
+  content: '●';
+  padding-right: 6px;
+}
+
+input[type='range']::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  appearance: none;
+  cursor: ew-resize;
+  background: #fff;
+  border: none;
+  box-shadow: -405px 0 0 400px #605e5c;
+  border-radius: 50%;
+}
+
+input[type='range']::-webkit-slider-thumb {
+  width: 20px;
+  height: 20px;
+  appearance: none;
+  cursor: ew-resize;
+  background: #fff;
+  border: none;
+  box-shadow: -405px 0 0 400px #605e5c;
+  border-radius: 50%;
+}
+
+.centered {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 
 @media screen {
@@ -53,29 +91,30 @@ ul {
 
   #tabs {
     scroll-behavior: smooth;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-  }
-
-  #tabs::-webkit-scrollbar {
-    width: 0px;
-    height: 0px;
-    background: transparent;
   }
 
   #page {
     width: 21cm;
-    height: 29.7cm;
-    padding: 2.5em;
-    zoom: 0.8;
-    overflow: scroll;
+    min-height: 29.7cm;
     background-color: white;
+  }
+
+  #printPage {
+    display: none;
+  }
+
+  #pageController {
+    bottom: 25px;
+  }
+
+  #pageController > div {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
   }
 }
 
 @page {
   size: A4;
-  margin: 2.5em;
+  margin: 0;
 }
 
 @media print {
@@ -87,19 +126,18 @@ ul {
     visibility: hidden;
   }
 
-  #page,
-  #page * {
-    page-break-inside: avoid;
+  #printPage,
+  #printPage * {
     visibility: visible;
+    page-break-inside: avoid;
   }
 
-  #page {
+  #printPage {
     width: 21cm;
     height: 29.7cm;
-    background-color: white;
-    box-shadow: none;
     position: absolute;
-    left: 0;
     top: 0;
+    left: 0;
+    right: 0;
   }
 }

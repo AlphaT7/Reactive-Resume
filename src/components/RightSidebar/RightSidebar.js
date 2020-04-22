@@ -1,4 +1,5 @@
 import React, { useState, useContext } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import AppContext from '../../context/AppContext';
 import TabBar from '../../shared/TabBar';
@@ -6,15 +7,44 @@ import TemplatesTab from './tabs/Templates';
 import ColorsTab from './tabs/Colors';
 import FontsTab from './tabs/Fonts';
 import ActionsTab from './tabs/Actions';
-
-const tabs = ['Templates', 'Colors', 'Fonts', 'Actions'];
+import AboutTab from './tabs/About';
+import SettingsTab from './tabs/Settings';
 
 const RightSidebar = () => {
+  const { t } = useTranslation('rightSidebar');
+
   const context = useContext(AppContext);
   const { state, dispatch } = context;
-  const { data, theme } = state;
+  const { data, theme, settings } = state;
 
-  const [currentTab, setCurrentTab] = useState('Templates');
+  const tabs = [
+    {
+      key: 'templates',
+      name: t('templates.title'),
+    },
+    {
+      key: 'colors',
+      name: t('colors.title'),
+    },
+    {
+      key: 'fonts',
+      name: t('fonts.title'),
+    },
+    {
+      key: 'actions',
+      name: t('actions.title'),
+    },
+    {
+      key: 'settings',
+      name: t('settings.title'),
+    },
+    {
+      key: 'about',
+      name: t('about.title'),
+    },
+  ];
+  const [currentTab, setCurrentTab] = useState(tabs[0].key);
+
   const onChange = (key, value) => {
     dispatch({
       type: 'on_input',
@@ -29,14 +59,18 @@ const RightSidebar = () => {
 
   const renderTabs = () => {
     switch (currentTab) {
-      case 'Templates':
+      case tabs[0].key:
         return <TemplatesTab theme={theme} onChange={onChange} />;
-      case 'Colors':
+      case tabs[1].key:
         return <ColorsTab theme={theme} onChange={onChange} />;
-      case 'Fonts':
+      case tabs[2].key:
         return <FontsTab theme={theme} onChange={onChange} />;
-      case 'Actions':
+      case tabs[3].key:
         return <ActionsTab data={data} theme={theme} dispatch={dispatch} />;
+      case tabs[4].key:
+        return <SettingsTab settings={settings} onChange={onChange} />;
+      case tabs[5].key:
+        return <AboutTab />;
       default:
         return null;
     }
