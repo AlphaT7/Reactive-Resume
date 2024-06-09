@@ -1,39 +1,47 @@
-## build image
-FROM node:13.12.0-alpine as build
+ARG NX_CLOUD_ACCESS_TOKEN
 
-## set working directory
-WORKDIR /usr/src/app
+# --- Base Image ---
+FROM node:lts-bullseye-slim AS base
+ARG NX_CLOUD_ACCESS_TOKEN
 
-## add `/usr/src/app/node_modules/.bin` to $PATH
-ENV PATH /usr/src/app/node_modules/.bin:$PATH
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
 
-## install and cache app dependencies
-COPY package.json /usr/src/app/package.json
+RUN corepack enable pnpm && corepack prepare pnpm@9.0.6 --activate
 
-## install git
-RUN apk add --no-cache git
+WORKDIR /app
 
-## install app dependencies
-RUN npm install
+# --- Build Image ---
+FROM base AS build
+ARG NX_CLOUD_ACCESS_TOKEN
 
-## copy files
-COPY . /usr/src/app
+COPY .npmrc package.json pnpm-lock.yaml ./
+COPY ./tools/prisma /app/tools/prisma
+RUN pnpm install --frozen-lockfile
 
-## build production app
-RUN npm run build
+COPY . .
 
-## production environment
-FROM nginx:1.17.9-alpine
+ENV NX_CLOUD_ACCESS_TOKEN=$NX_CLOUD_ACCESS_TOKEN
 
-## copy build artifacts to nginx
-COPY --from=build /usr/src/app/build /usr/share/nginx/html
+RUN pnpm run build
 
-## copy custom nginx config
-RUN rm /etc/nginx/conf.d/default.conf
-COPY nginx/nginx.conf /etc/nginx/conf.d
+# --- Release Image ---
+FROM base AS release
+ARG NX_CLOUD_ACCESS_TOKEN
 
-## export port 80
-EXPOSE 80
+RUN apt update && apt install -y dumb-init --no-install-recommends && rm -rf /var/lib/apt/lists/*
 
-## run nginx server
-CMD ["nginx", "-g", "daemon off;"]
+COPY --chown=node:node --from=build /app/.npmrc /app/package.json /app/pnpm-lock.yaml ./
+RUN pnpm install --prod --frozen-lockfile
+
+COPY --chown=node:node --from=build /app/dist ./dist
+COPY --chown=node:node --from=build /app/tools/prisma ./tools/prisma
+RUN pnpm run prisma:generate
+
+ENV TZ=UTC
+ENV PORT=3000
+ENV NODE_ENV=production
+
+EXPOSE 3000
+
+CMD [ "dumb-init", "pnpm", "run", "start" ]

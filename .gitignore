@@ -1,30 +1,52 @@
-# dependencies
-/node_modules
-/.pnp
-.pnp.js
+# Compiled Output
+dist
+tmp
+/out-tsc
 
-# testing
+# Project Dependencies
+node_modules
+
+# IDEs and Editors
+/.idea
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+# IDE - VSCode
+.vs/*
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# Miscellaneous
+/.sass-cache
+/connect.lock
 /coverage
+/libpeerconnection.log
+npm-debug.log
+yarn-error.log
+testem.log
+/typings
 
-# production
-/build
-
-# firebase
-.firebase
-
-# tailwind
-tailwind.css
-
-# vuepress
-docs/.vuepress/dist
-
-# misc
+# System Files
 .DS_Store
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+Thumbs.db
 
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+# Generated Files
+.nx
+.swc
+fly.toml
+stats.html
+
+# Environment Variables
+*.env*
+!.env.example
+
+# Lingui Compiled Messages
+apps/client/src/locales/_build/
+apps/client/src/locales/*/messages.mjs
